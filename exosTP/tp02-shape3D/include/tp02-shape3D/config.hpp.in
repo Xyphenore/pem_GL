@@ -1,0 +1,13 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#include <filesystem>
+
+/// Répertoire contenant les ressources.
+const std::filesystem::path _resources_directory{ "@RESOURCES_DIRECTORY@" };
+
+/// Constantes représentant la version de OpenGL
+constexpr auto GL_CONTEXT_VERSION_MAJOR = 3;
+constexpr auto GL_CONTEXT_VERSION_MINOR = 3;
+
+#endif
