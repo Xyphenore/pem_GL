@@ -30,7 +30,7 @@
 #include <cmath>
 
 // Préciser le dossier de la bibliothèque
-#include "tp01/config.hpp"
+#include "tp01-shape2D/config.hpp"
 
 namespace xyf::clean_code {
     using Width = int;

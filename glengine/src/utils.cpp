@@ -1,5 +1,5 @@
 /*
- * PEM_GL - Copyright © 2022 DAVID Axel
+ * PEM_GL - Copyright © 2022-2022 DAVID Axel
  * Mail to:
  * axel.david@etu.univ-amu.fr
  *
@@ -36,7 +36,7 @@
 
 #include <GLFW/glfw3.h>
 
-#include <glengine/utils.hpp>
+#include <glengine/utility.hpp>
 
 std::string gl_engine::getCodeName( const gl_engine::GLFWErrorCode code ) {
     // SRC : https://www.glfw.org/docs/3.3/group__errors.html#gad44162d78100ea5e87cdd38426b8c7a1

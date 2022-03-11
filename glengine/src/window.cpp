@@ -1,5 +1,5 @@
 /*
- * PEM_GL - Copyright © 2022 DAVID Axel
+ * PEM_GL - Copyright © 2022-2022 DAVID Axel
  * Mail to:
  * axel.david@etu.univ-amu.fr
  *
@@ -15,53 +15,48 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-/*
- * PEX_GL - Copyright © 2022 DAVID Axel
- * Mail to:
- * axel.david@etu.univ-amu.fr
- *
- * PEX_GL is free software: you can redistribute it and/or modify it under the terms of
- * the GNU General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
- *
- * PEX_GL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with this program.
- * If not, see <https://www.gnu.org/licenses/>.
- */
-
 #include <glengine/window.hpp>
 #include <glengine/utility.hpp>
-#include <iostream>
+#include <stdexcept>
 
-gl_engine::Window::Window( Settings settings )
-:   dimensions_(settings.dim),
-    title_(settings.title),
-    monitor_(settings.monitor), shareWindows_(settings.shareWindow),
-    resizeFunction_(settings.resizeFunction) {
+gl_engine::Window::Window( Dimension dimension, std::string title, Window_t type )
+:   title_(std::move(title)) {
     // TODO Vérifier les paramètres
-    smartGLFWwindow window( ::glfwCreateWindow( dimensions_.width, dimensions_.height,
-                                                title_.c_str(),monitor_, shareWindows_) );
-
-    if ( window.get() == nullptr ) std::cout << "test" << '\n';
+    smartGLFWwindow window( ::glfwCreateWindow( dimension.width, dimension.height,
+                                                title_.c_str(),nullptr, nullptr) );
 
     if ( nullptr == window ) {
         throw std::runtime_error( "Impossible d’allouer l’espace nécessaire pour créer la fenêtre" );
     }
 
-    window_ = std::move( window );
+    handle_ = std::move( window );
 }
 
-GLFWwindow* gl_engine::Window::get() const noexcept {
-    return window_.get();
+void gl_engine::Window::render() const {
+    if (scene_.has_value()) {
+        scene_->render();
+    }
 }
 
-gl_engine::Dimension gl_engine::Window::getDimension() const {
-    return dimensions_;
+void gl_engine::Window::addScene( Scene scene ) {
+    if ( !scene_.has_value() ) {
+        scene_ = scene;
+    }
+    else {
+        throw std::logic_error("erreur");
+    }
 }
 
-void gl_engine::Window::setDimension( Dimension newDimension ) {
-    dimensions_ = std::move(newDimension);
+void gl_engine::Window::removeScene() noexcept {
+    scene_.reset();
+}
+
+std::string gl_engine::Window::getTitle() const noexcept {
+    return title_;
+}
+
+void gl_engine::Window::setTitle( std::string title ) {
+    title_ = title;
+
+    glfwSetWindowTitle(handle_.get(),title_.c_str());
 }

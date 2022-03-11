@@ -5,7 +5,7 @@
 
 #include <memory>
 
-#include "tp02-shape3D/config.hpp"
+#include "tp03/config.hpp"
 #include "utils.hpp"
 
 // TODO Déplacer les définitions dans le cpp pour les longues fontions.

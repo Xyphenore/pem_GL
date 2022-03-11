@@ -1,5 +1,5 @@
 /*
- * PEM_GL - Copyright © 2022 DAVID Axel
+ * PEM_GL - Copyright © 2022-2022 DAVID Axel
  * Mail to:
  * axel.david@etu.univ-amu.fr
  *
@@ -54,6 +54,7 @@
 #define GLENGINE_UTILITY_HPP
 
 #include <GLFW/glfw3.h>
+#include <stdexcept>
 #include <type_traits>
 #include <string>
 #include <string_view>
@@ -308,6 +309,8 @@ namespace gl_engine::utility {
      * @note Cette fonction ne gère que les macros définies dans le fichier glad.h, s’il y a un changement dans le système cette fonction peut ne pas fonctionner.
      */
     std::string to_string( GLenum macro );
+
+
 }
 
 // region Export
@@ -414,6 +417,60 @@ namespace gl_engine::open_gl {
 
     };
 }
+
+namespace gl_engine {
+    using GLFWErrorCode = int;
+
+    using GLFW_initialisation_failed = std::runtime_error;
+
+    using GLFWException = std::runtime_error;
+
+    using GLFWUnknownException = std::runtime_error;
+
+
+    /**
+     * @brief Retourne une chaine de caractère représentant le nom du code d'erreur GLFW passé.
+     * @param code[in] Le code d'erreur voulant être convertit en chaine de caractère.
+     * @return Une chaine de caractère.
+     * @throws bidon::GLFWUnknownException Lancée si le code d'erreur est inconnu.
+     * @throws std::bad_alloc Lancée si le conteneur interne ne peut pas être alloué.
+     * @exceptsafe Forte. Ne modifie aucunes données.
+     * @cite https://www.glfw.org/docs/3.3/group__errors.html#gad44162d78100ea5e87cdd38426b8c7a1
+     */
+    std::string getCodeName( GLFWErrorCode code );
+
+    /**
+     * @brief Fonctionne appelée à chaque erreur de GLFW. Cette fonction lance une exception pour chaque erreur.
+     * @param code[in] Le code d'erreur GLFW.
+     * @param description[in] La description du message d'erreur.
+     * @throws std::bad_allox Lancée si l'allocation du message rate.
+     * @throws bidon::GLFWException Lancée à chaque appel de la fonction.
+     * @exceptsafe Forte. Ne modifie aucunes données.
+     * @cite https://www.glfw.org/docs/3.3/intro_guide.html#error_handling
+     */
+    void GLFWErrorCallback( GLFWErrorCode code, const char* description );
+
+    class Dimension {
+    public:
+        GLsizei width;
+        GLsizei height;
+
+        Dimension() = default;
+        Dimension( const Dimension& ) = default;
+        Dimension( Dimension&& ) noexcept = default;
+        ~Dimension() noexcept = default;
+        Dimension& operator=( const Dimension& ) = default;
+        Dimension& operator=( Dimension&& ) noexcept = default;
+    };
+
+}
+
+inline void gl_engine::GLFWErrorCallback( const gl_engine::GLFWErrorCode code, const char* const description ) {
+    if ( GLFW_NO_ERROR != code ) {
+        throw gl_engine::GLFWException( "Erreur GLFW : " + gl_engine::getCodeName( code ) + description );
+    }
+}
+
 
 
 

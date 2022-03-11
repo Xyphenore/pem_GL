@@ -1,5 +1,5 @@
 /*
- * PEM_GL - Copyright © 2022 DAVID Axel
+ * PEM_GL - Copyright © 2022-2022 DAVID Axel
  * Mail to:
  * axel.david@etu.univ-amu.fr
  *
@@ -32,8 +32,8 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "glengine/shaderProgram.hpp"
-#include "glengine/shader.hpp"
+#include <glengine/shaderProgram.hpp>
+#include <glengine/shader.hpp>
 #include <glengine/utility.hpp>
 
 // Constructor
@@ -68,7 +68,7 @@ void gl_engine::ShaderProgram::attachShader( Shader shader ) {
     // https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/glAttachShader.xhtml
     auto& modifiedShader = vertex_;
 
-    switch (shader.getType().get()) {
+    switch (interface::Shader_Program::getType(shader).get()) {
         case Shader_t::VERTEX.get() :
             modifiedShader = vertex_;
             break;
@@ -92,7 +92,7 @@ void gl_engine::ShaderProgram::attachShader( Shader shader ) {
 
     modifiedShader = std::move(shader);
 
-    open_gl::attachShader(id_, modifiedShader->id_ );
+    open_gl::attachShader(id_, interface::Shader_Program::getId(modifiedShader) );
     // TODO checker les erreurs ( shader déjà attacher)
 
     compile();
@@ -107,7 +107,7 @@ void gl_engine::ShaderProgram::attachShader( std::initializer_list<Shader> shade
     for ( auto shader : shaders ) {
         auto& modifiedShader = vertex_;
 
-        switch (shader.getType().get()) {
+        switch (interface::Shader_Program::getType(shader).get()) {
             case Shader_t::VERTEX.get() :
                 modifiedShader = vertex_;
                 break;
@@ -131,7 +131,7 @@ void gl_engine::ShaderProgram::attachShader( std::initializer_list<Shader> shade
 
         modifiedShader = std::move(shader);
 
-        open_gl::attachShader(id_, modifiedShader->id_ );
+        open_gl::attachShader(id_, interface::Shader_Program::getId(modifiedShader) );
     }
 
     // TODO checker les erreurs ( shader déjà attacher)
@@ -176,5 +176,5 @@ void gl_engine::ShaderProgram::compile() {
 
 template<typename T>
 void gl_engine::ShaderProgram::setUniform( std::string name, T value ) {
-#warning "Do nothing"
+    throw std::runtime_error("Do nothing");
 }

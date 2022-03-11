@@ -1,5 +1,5 @@
 /*
- * PEM_GL - Copyright © 2022 DAVID Axel
+ * PEM_GL - Copyright © 2022-2022 DAVID Axel
  * Mail to:
  * axel.david@etu.univ-amu.fr
  *
@@ -8,41 +8,6 @@
  * either version 3 of the License, or (at your option) any later version.
  *
  * PEM_GL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with this program.
- * If not, see <https://www.gnu.org/licenses/>.
- */
-
-/*
- * PEX_GL - Copyright © 2022 DAVID Axel
- * Mail to:
- * axel.david@etu.univ-amu.fr
- *
- * PEX_GL is free software: you can redistribute it and/or modify it under the terms of
- * the GNU General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
- *
- * PEX_GL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with this program.
- * If not, see <https://www.gnu.org/licenses/>.
- */
-
-/*
- * Bidon_OpenGL - Copyright © 2022-2022 DAVID Axel, GOI Suzy
- * Mail to:
- * axel.david@etu.univ-amu.fr
- * muriel.coet@etu.univ-amu.fr
- *
- * Bidon_OpenGL is free software: you can redistribute it and/or modify it under the terms of
- * the GNU General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
- *
- * Bidon_OpenGL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
  *
@@ -98,135 +63,6 @@ gl_engine::Shader::Shader( const Shader_t type, Content source ) {
     }
 
     // TODO Vérifier les erreurs finales
-}
-
-gl_engine::Shader::Shader( const gl_engine::Shader_t type, const std::filesystem::path source ) {
-    // Vérifier que le path est good
-    // Chemin valide
-    if ( !std::filesystem::exists( source ) ) {
-        throw std::invalid_argument( "Le chemin : '" + source.string() + "' n'existe pas." );
-    }
-
-    // TODO Inverser les deux opérations suivantes
-    // Chemin vers un fichier ou un fifo
-    // On accepte seulement les fichiers dits réguliers et les liens symboliques vers des fichiers réguliers
-    if ( (!std::filesystem::is_regular_file( source )) && (!std::filesystem::is_symlink( source )) ) {
-        throw std::invalid_argument(
-                "Le chemin fourni : " + source.string() + " ne pointe pas vers un fichier régulier." );
-    }
-
-    const auto pathSRC = ( std::filesystem::is_symlink( source ) ? std::filesystem::read_symlink( source )
-                                                                 : source );
-
-    // TODO Peut être une vérification redondante
-    // Le fichier ne doit pas être vide
-    if ( std::filesystem::is_empty( pathSRC ) ) {
-        throw std::invalid_argument( "La source du shader : " + pathSRC.string() + " est vide." );
-    }
-
-    // Lecture du contenu du fichier
-    std::ifstream sourceFile( pathSRC );
-
-    if ( !sourceFile.is_open() ) {
-        throw std::ios_base::failure( "Impossible d’ouvrir le fichier à l’adresse : " + pathSRC.string() );
-    }
-
-    // Activation des exceptions pour les prochaines opérations
-    sourceFile.exceptions( std::ios_base::failbit | std::ios_base::badbit );
-
-    std::ostringstream buffer;
-    try {
-        buffer << sourceFile.rdbuf();
-    }
-    catch ( const std::ios_base::failure& exception ) {
-        throw std::ios_base::failure( "Erreur interne durant la lecture du fichier : " + pathSRC.string(),
-                                      exception.code() );
-    }
-
-    // Libération du fichier
-    try {
-        sourceFile.close();
-    }
-    catch ( const std::ios_base::failure& exception ) {
-        throw std::ios_base::failure("Erreur interne durant la fermeture du fichier : " + pathSRC.string(),
-                                     exception.code() );
-    }
-
-
-
-
-
-
-    // Associer la source au shader
-    const auto sourceSTR = buffer.str();
-    auto* const sourceCSTR = sourceSTR.c_str();
-
-    id_ = open_gl::createShader(type);
-    // Vérifier que la création du shader est valide(aka le type)
-    if ( 0 == id_ ) {
-        GLint sizeLog = 0;
-        glGetShaderiv( id_, GL_INFO_LOG_LENGTH, &sizeLog );
-
-        // TODO Vider glGetError
-
-        //const auto logMessage = std::make_unique<char[]>( static_cast<size_t>(sizeLog) );
-        std::string logMessage;
-        logMessage.resize(static_cast<size_t>(sizeLog), '\0' );
-        glGetShaderInfoLog( id_, sizeLog, nullptr, logMessage.data() );
-
-        std::string errorMessage( "ERROR::CREATE_SHADER::TYPE : " );
-        errorMessage.append( "TYPE"/*type*/ ).append( " , source : " )
-                    .append( source.string() ).append( " : " ).append( logMessage );
-
-        throw std::runtime_error( errorMessage );
-    }
-
-    // Le shader a été alloué
-    // Toutes exceptions lancées doivent supprimer le shader
-    try {
-        glShaderSource( id_, 1, &sourceCSTR, nullptr );
-
-        GLint sizeLog = 0;
-        glGetShaderiv( id_, GL_INFO_LOG_LENGTH, &sizeLog );
-
-        if ( sizeLog > 0 ) {
-            //const auto logMessage = std::make_unique<char[]>( static_cast<size_t>(sizeLog) );
-            std::string logMessage;
-            logMessage.resize(static_cast<size_t>(sizeLog), '\0' );
-            glGetShaderInfoLog( id_, sizeLog, nullptr, logMessage.data() );
-
-            std::string errorMessage( "ERROR::SOURCE_SHADER::TYPE : " );
-            errorMessage.append( "TYPE"/*type*/ ).append( " , source : " ).append( source.string() ).append(
-                    " : " ).append( logMessage );
-
-            throw std::runtime_error( errorMessage );
-        }
-
-        // Compiler
-        glCompileShader( id_ );
-
-        // Vérifier les erreurs
-        GLint success = GL_FALSE;
-        glGetShaderiv( id_, GL_COMPILE_STATUS, &success );
-
-        if ( GL_FALSE == static_cast<GLboolean>(success) ) {
-            glGetShaderiv( id_, GL_INFO_LOG_LENGTH, &sizeLog );
-            //const auto logMessage = std::make_unique<char[]>( static_cast<size_t>(sizeLog) );
-            std::string logMessage;
-            logMessage.resize(static_cast<size_t>(sizeLog), '\0' );
-            glGetShaderInfoLog( id_, sizeLog, nullptr, logMessage.data() );
-
-            std::string errorMessage( "ERROR::COMPILATION_SHADER::TYPE : " );
-            errorMessage.append( "TYPE"/*type*/ ).append( " , source : " ).append( source.string() ).append(
-                    " : " ).append( logMessage );
-
-            throw std::runtime_error( errorMessage );
-        }
-    }
-    catch ( ... ) {
-        glDeleteShader(id_);
-        throw;
-    }
 }
 
 gl_engine::Shader::Shader( const Shader& other ) {
@@ -474,8 +310,9 @@ gl_engine::Content gl_engine::Shader::getSource() const {
     }
 
     // Récupération de la source
-    const auto source = std::make_unique<GLchar>(sourceLength);
-    glGetShaderSource( id_, sourceLength, nullptr, source.get() );
+    std::string source;
+    source.resize(sourceLength);
+    glGetShaderSource( id_, sourceLength, nullptr, source.data() );
 
     GLint logSize = 0;
     glGetShaderiv( id_, GL_INFO_LOG_LENGTH, &logSize );
@@ -490,7 +327,11 @@ gl_engine::Content gl_engine::Shader::getSource() const {
         throw std::runtime_error(errorMessage);
     }
 
-    return Content(source.get());
+    return Content(source);
+}
+
+gl_engine::Id gl_engine::Shader::getId() const noexcept {
+    return id_;
 }
 
 // Private function

@@ -7,3 +7,5 @@ add_subdirectory(tp03)
 
 add_subdirectory(tp01-shape2D)
 add_subdirectory(tp02-shape3D)
+
+add_subdirectory(tp03-texture)

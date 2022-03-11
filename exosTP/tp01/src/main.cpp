@@ -31,10 +31,13 @@
 
 // Préciser le dossier de la bibliothèque
 #include "tp01/config.hpp"
+#include "glengine/window.hpp"
 
 #include <glengine/utility.hpp>
 #include <glengine/shader.hpp>
 #include <iostream>
+
+#include <glengine/glfw/exception.hpp>
 
 namespace xyf::clean_code {
     using Width = int;
@@ -519,6 +522,8 @@ int main() {
 
     ::glfwTerminate();
 
+    std::hash<int> hasher;
+
     std::cout << "Size of 2void* : " << 2 * sizeof(void*) << '\n';
     std::cout << "Size of Shader_t : " << sizeof(gl_engine::Shader::Type) << '\n';
     std::cout << "Size of Shader : " << sizeof(gl_engine::Shader) << '\n';
@@ -527,6 +532,11 @@ int main() {
     std::cout << "Size of String : " << sizeof(std::string) << '\n';
     std::cout << "Size of const char* : " << sizeof(const char*) << '\n';
     std::cout << "Size of FS::Path : " << sizeof(std::filesystem::path) << '\n';
+    std::cout << "Size of ErrorCode : " << sizeof(gl_engine::glfw::ErrorCode) << '\n';
+    std::cout << "Size of Exception : " << sizeof(gl_engine::glfw::Exception) << '\n';
+    std::cout << "Size of Exception : " << sizeof(std::exception) << '\n';
+    std::cout << "Size of Window : " << sizeof(gl_engine::Window) << '\n';
+    std::cout << "Size of Error : " << hasher(15) << '\n';
 
     //gl_engine::Shader test( gl_engine::Shader_t::VERTEX, gl_engine::utility::Content(gl_engine::utility::Path("patate")));
 
