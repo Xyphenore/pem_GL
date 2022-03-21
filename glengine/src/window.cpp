@@ -22,8 +22,14 @@
 gl_engine::Window::Window( Dimension dimension, std::string title, Window_t type )
 :   title_(std::move(title)) {
     // TODO Vérifier les paramètres
+
+    GLFWmonitor* screen = nullptr;
+    if ( type == Window_t::FULLSCREEN ) {
+        screen = ::glfwGetPrimaryMonitor();
+    }
+
     smartGLFWwindow window( ::glfwCreateWindow( dimension.width, dimension.height,
-                                                title_.c_str(),nullptr, nullptr) );
+                                                title_.c_str(),screen, nullptr) );
 
     if ( nullptr == window ) {
         throw std::runtime_error( "Impossible d’allouer l’espace nécessaire pour créer la fenêtre" );

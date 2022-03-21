@@ -66,3 +66,4 @@ include_directories(
 
 add_subdirectory( glengine )
 add_subdirectory( exosTP )
+add_subdirectory( modules )

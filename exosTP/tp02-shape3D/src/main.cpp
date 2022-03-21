@@ -23,7 +23,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <stdexcept>
-#include <memory>
 #include <vector>
 #include <string_view>
 #include <string>

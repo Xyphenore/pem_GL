@@ -17,8 +17,11 @@ include_directories( ${CMAKE_CURRENT_BINARY_DIR}/include BEFORE )
 set( SRC
      ${SRC_DIR}/glengine.cpp
      ${SRC_DIR}/glEnum2String.cpp
+
+     ${SRC_DIR}/abstract_shader.cpp
      ${SRC_DIR}/shader.cpp
      ${SRC_DIR}/shaderProgram.cpp
+
      ${SRC_DIR}/utility.cpp
      ${SRC_DIR}/window.cpp
 
@@ -31,16 +34,23 @@ set( HEADER
      ${INC_DIR}/${PROJECT_NAME}/exception.hpp
      ${INC_DIR}/${PROJECT_NAME}/glengine.hpp
      ${INC_DIR}/${PROJECT_NAME}/scene.hpp
+
+     ${INC_DIR}/${PROJECT_NAME}/shader_interface.hpp
+     ${INC_DIR}/${PROJECT_NAME}/abstract_shader.hpp
      ${INC_DIR}/${PROJECT_NAME}/shader.hpp
      ${INC_DIR}/${PROJECT_NAME}/shaderProgram.hpp
+
      ${INC_DIR}/${PROJECT_NAME}/utility.hpp
      ${INC_DIR}/${PROJECT_NAME}/texture.hpp
      ${INC_DIR}/${PROJECT_NAME}/window.hpp
+     ${INC_DIR}/${PROJECT_NAME}/object.hpp
+     ${INC_DIR}/${PROJECT_NAME}/complex_object.hpp
+     ${INC_DIR}/${PROJECT_NAME}/object_factory.hpp
+
 
      ${INC_DIR}/${PROJECT_NAME}/glfw/exception.hpp
      ${INC_DIR}/${PROJECT_NAME}/glfw/exception_factory.hpp
      ${INC_DIR}/${PROJECT_NAME}/glfw/glfw.hpp
-     ${INC_DIR}/${PROJECT_NAME}/glfw/interface.hpp
      )
 
 

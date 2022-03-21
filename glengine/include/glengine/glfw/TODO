@@ -1,0 +1,4 @@
+Refactoriser les exceptions
+Telle qui hérite de Exception une interface Internal Error et Invalid Argument
+
+Finir l'objet GLFW

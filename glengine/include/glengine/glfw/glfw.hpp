@@ -113,7 +113,7 @@ namespace gl_engine::glfw {
      */
     static constexpr GLFWerrorfun DEFAULT_ERROR_CALLBACK_FUNCTION = []
             ( const int errorCode, const char* const errorMessage ) {
-        throw glfw::ExceptionFactory::createException( ErrorCode(errorCode), errorMessage );
+        throw *glfw::ExceptionFactory::createException( ErrorCode(errorCode), errorMessage );
     };
 
 //    // region Interface gl_engine<=>glfw
@@ -188,9 +188,109 @@ namespace gl_engine::glfw {
     }
 }
 
-// region Code BON
 
+namespace gl_engine {
+    class Window;
+    class GLFWwindowDestroyer;
+}
 
+namespace gl_engine::interface {
+    /**
+     * @brief Interface entre l’objet gl_engine::glfw::GLFW et gl_engine::Window.\n
+     * @brief Elle permet l’instanciation de l’objet gl_engine::glfw::GLFW.
+     *
+     * @version 1.0
+     * @since 0.1
+     * @author Axel DAVID
+     *
+     * @see gl_engine::Window
+     * @see gl_engine::glfw::GLFW
+     */
+    class Window_GLFW final {
+        /*
+         * Note développeur :
+         * Cette classe existe pour empêcher l’accès aux données privées de gl_engine::glfw::GLFW par l'objet gl_engine::Window.
+         * Et pour avoir une seule instance de l’objet gl_engine::glfw::GLFW
+         */
+    private:
+        /**
+         * @brief Retourne l’instance de l’objet gl_engine::glfw::GLFW, ou le crée s’il est inexistant.
+         *
+         * @return Retourne l’instance de GLFW.
+         *
+         * @post La même instance est retournée.
+         * @post L’instance de l’objet GLFW est dans un état valide.
+         *
+         * @throws std::bad_alloc Lancée si la mémoire est insuffisante pour allouer l’objet gl_engine::glfw::GLFW.
+         * @throws gl_engine::glfw::Platform_Error Lancée si une erreur survient durant l’initialisation de l’objet GLFW.
+         * @exceptsafe FORT. Ne modifie aucune donnée.
+         *
+         * @version 1.0
+         * @since 0.1
+         * @author Axel DAVID
+         *
+         * @see gl_engine::glfw::GLFW
+         * @see [GLFW-Error_Code-Platform_Error](https://www.glfw.org/docs/3.3/group__errors.html#gad44162d78100ea5e87cdd38426b8c7a1)
+         * @see [GLFW-Init](https://www.glfw.org/docs/3.3/group__init.html#ga317aac130a235ab08c6db0834907d85e)
+         *
+         * @note Cette fonction doit être appelée sur le thread principal.
+         */
+        static auto& getInstance() {
+            return gl_engine::glfw::GLFW::getInstance();
+        }
 
-// endregion
+        friend class gl_engine::Window;
+    };
+
+    /**
+     * @brief Interface entre l’objet gl_engine::glfw::GLFW et gl_engine::GLFWwindowDestroyer.\n
+     * @brief Elle permet de détruire une fenêtre GLFW et son contexte.
+     *
+     * @version 1.0
+     * @since 0.1
+     * @author Axel DAVID
+     *
+     * @see gl_engine::GLFWwindowDestroyer
+     * @see gl_engine::glfw::GLFW
+     */
+    class SmartDestroyWindow_GLFW final {
+        /*
+         * Note développeur :
+         * Cette classe existe pour limiter l’accès à l’objet gl_engine::glfw::GLFW par l'objet gl_engine::GLFWwindowDestroyer.
+         * Pour seulement lui permettre de détruire une fenêtre GLFW pointée par le pointeur contenu
+         * dans un gl_engine::smartGLFWwindow.
+         */
+    private:
+        /**
+         * @brief Détruit la fenêtre pointée par la poignée fournie.
+         *
+         * @param [in]window La poignée vers la fenêtre à détruire.
+         * @post La fenêtre et le contexte ont été détruit.
+         *
+         * @throws gl_engine::glfw::Not_Initialized Lancée si le contexte GLFW n’a pas été initialisé.
+         * @throws gl_engine::glfw::Platform_Error Lancée si une erreur spécifique à la plateforme est survenue.
+         * @exceptsafe AUCUNE. Si Not_Initialized est lancée alors le contexte GLFW n’a pas été initialisé, il suffit donc de l’initialiser.
+         * @exceptsafe AUCUNE. Si Platform_Error est lancée alors l’objet GLFW est dans un état indéfini.
+         *
+         * @version 1.0
+         * @since 0.1
+         * @author Axel DAVID
+         *
+         * @see gl_engine::glfw::GLFW
+         * @see gl_engine::GLFWwindowDestroyer
+         * @see gl_engine::smartGLFWwindow
+         * @see void gl_engine::glfw::GLFW::destroyWindow( GLFWwindow* window )
+         * @see [GLFW-DestroyWindow](https://www.glfw.org/docs/3.3/group__window.html#gacdf43e51376051d2c091662e9fe3d7b2)
+         *
+         * @note Cette fonction doit être appelée sur le thread principal.
+         * @note L’exception gl_engine::glfw::Platform_Error est expliqué dans le lien fourni.
+         */
+        static void destroyWindow( GLFWwindow* const window ) {
+            gl_engine::glfw::GLFW::getInstance().destroyWindow(window);
+        }
+
+        friend class gl_engine::GLFWwindowDestroyer;
+    };
+}
+
 #endif // GLENGINE_GLFW_GLFW_HPP

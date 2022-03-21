@@ -39,6 +39,9 @@
 
 #include <glengine/glfw/exception.hpp>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stbimage/stb_image.h>
+
 namespace xyf::clean_code {
     using Width = int;
     using Height = int;
@@ -525,8 +528,8 @@ int main() {
     std::hash<int> hasher;
 
     std::cout << "Size of 2void* : " << 2 * sizeof(void*) << '\n';
-    std::cout << "Size of Shader_t : " << sizeof(gl_engine::Shader::Type) << '\n';
-    std::cout << "Size of Shader : " << sizeof(gl_engine::Shader) << '\n';
+    std::cout << "Size of Shader_t : " << sizeof(gl_engine::AbstractShader::Type) << '\n';
+    std::cout << "Size of Shader : " << sizeof(gl_engine::AbstractShader) << '\n';
     std::cout << "Size of Content : " << sizeof(gl_engine::utility::Content) << '\n';
     std::cout << "Size of Path : " << sizeof(gl_engine::utility::Path) << '\n';
     std::cout << "Size of String : " << sizeof(std::string) << '\n';
@@ -537,6 +540,10 @@ int main() {
     std::cout << "Size of Exception : " << sizeof(std::exception) << '\n';
     std::cout << "Size of Window : " << sizeof(gl_engine::Window) << '\n';
     std::cout << "Size of Error : " << hasher(15) << '\n';
+    std::cout << "Size of Pair : " << sizeof(std::pair<int, std::string>) << '\n';
+
+    stbi_image_free(NULL);
+
 
     //gl_engine::Shader test( gl_engine::Shader_t::VERTEX, gl_engine::utility::Content(gl_engine::utility::Path("patate")));
 

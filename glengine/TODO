@@ -1,0 +1,17 @@
+Refactoriser les exceptions de glfw
+Finir le classe Window
+Finir l'objet GLFW
+
+Faire l'objet GLAD
+
+Faire l'objet OPENGL
+
+Refactoriser les shaders pour mettre en place l'heritage
+
+Crée l'objet IHM et STB
+Il est nécessaire de faire un objet STB qui sera une classe statique avec les méthodes de STB
+
+
+Crée la factory qui load un fichier obj
+
+Crée une classe Texture

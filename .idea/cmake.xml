@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeSharedSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug-GCC-9" ENABLED="true" CONFIG_NAME="Debug" TOOLCHAIN_NAME="GCC-9" GENERATION_OPTIONS="-G Ninja" BUILD_OPTIONS="-j6" />
+      <configuration PROFILE_NAME="Debug-GCC-10" ENABLED="true" CONFIG_NAME="Debug" TOOLCHAIN_NAME="GCC-10" GENERATION_OPTIONS="-G Ninja" BUILD_OPTIONS="-j6" />
+      <configuration PROFILE_NAME="Debug-Clang-10" ENABLED="true" CONFIG_NAME="Debug" TOOLCHAIN_NAME="Clang-10" GENERATION_OPTIONS="-G Ninja" BUILD_OPTIONS="-j6" />
+      <configuration PROFILE_NAME="Debug-Clang-12" ENABLED="true" CONFIG_NAME="Debug" TOOLCHAIN_NAME="Clang-12" GENERATION_OPTIONS="-G Ninja" BUILD_OPTIONS="-j6" />
+      <configuration PROFILE_NAME="Release-GCC-10" ENABLED="true" CONFIG_NAME="Release" TOOLCHAIN_NAME="GCC-10" GENERATION_OPTIONS="-G Ninja" BUILD_OPTIONS="-j6" />
+      <configuration PROFILE_NAME="Release-Clang-12" ENABLED="true" CONFIG_NAME="Release" TOOLCHAIN_NAME="Clang-12" GENERATION_OPTIONS="-G Ninja" BUILD_OPTIONS="-j6" />
+    </configurations>
+  </component>
+</project>

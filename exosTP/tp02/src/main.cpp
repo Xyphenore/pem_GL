@@ -149,8 +149,8 @@ int main() {
     const auto app = App::createApp();
     app->addWindow(std::make_unique<Window>(settings));
 
-    const auto vertexShader = Shader(Shader_t::VERTEX, Content(Path(shaders_directory / "shader.vert") ) );
-    const auto fragmentShader = Shader(Shader_t::FRAGMENT, Content(Path(shaders_directory / "shader.frag") ) );
+    const auto vertexShader = AbstractShader( Shader_t::VERTEX, Content( Path( shaders_directory / "shader.vert" ) ) );
+    const auto fragmentShader = AbstractShader( Shader_t::FRAGMENT, Content( Path( shaders_directory / "shader.frag" ) ) );
     auto program = ShaderProgram();
     program.attachShader({vertexShader, fragmentShader});
 

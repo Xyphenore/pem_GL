@@ -15,45 +15,11 @@
  * If not, see <https://www.gnu.org/licenses/>.
  */
 
-/*
- * PEX_GL - Copyright © 2022 DAVID Axel
- * Mail to:
- * axel.david@etu.univ-amu.fr
- *
- * PEX_GL is free software: you can redistribute it and/or modify it under the terms of
- * the GNU General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
- *
- * PEX_GL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with this program.
- * If not, see <https://www.gnu.org/licenses/>.
- */
-
-/*
- * Bidon_OpenGL - Copyright © 2022 DAVID Axel, GOI Suzy
- * Mail to:
- * axel.david@etu.univ-amu.fr
- * muriel.coet@etu.univ-amu.fr
- *
- * Bidon_OpenGL is free software: you can redistribute it and/or modify it under the terms of
- * the GNU General Public License as published by the Free Software Foundation,
- * either version 3 of the License, or (at your option) any later version.
- *
- * Bidon_OpenGL is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with this program.
- * If not, see <https://www.gnu.org/licenses/>.
- */
-
 #ifndef GLENGINE_UTILITY_HPP
 #define GLENGINE_UTILITY_HPP
 
 #include <GLFW/glfw3.h>
+
 #include <stdexcept>
 #include <type_traits>
 #include <string>
@@ -61,7 +27,12 @@
 #include <istream>
 #include <filesystem>
 
-// region Types
+#include <glengine/exception.hpp>
+
+
+#include <stbimage/stb_image.h>
+
+
 namespace gl_engine {
     /**
      * @brief Alias pour le type des identifiants générés par OpenGL
@@ -72,65 +43,446 @@ namespace gl_engine {
 
     using Length = GLint;
 }
-// endregion
 
+/**
+ * @brief Espace de noms contenant tous les objets utilitaires.
+ *
+ * @version 1.0
+ * @since 0.1
+ * @author Axel DAVID
+ */
 namespace gl_engine::utility {
-    // Déclaration de la class Path nécessaire pour la classe Content
+    /**
+    * @brief Exception indiquant que la source fournie est vide.
+    *
+    * @version 1.0
+    * @since 0.1
+    * @author Axel DAVID
+    *
+    * @see gl_engine::utility::Content
+    */
+    class EmptySource final : public InvalidArgument {
+    public:
+        /**
+         * @brief Crée l’exception à partir d’une std::string contenant le type de la source. Le message d’erreur a été prédéfini.
+         * @param sourceType Le type de la source qui est vide.
+         *
+         * @exceptsafe NO-THROWS.
+         *
+         * @version 1.0
+         * @since 0.1
+         *
+         * @see gl_engine::utility::Content
+         */
+        explicit EmptySource( const std::string& sourceType ) noexcept
+        : InvalidArgument("Type de source : " + sourceType + '\n' + "La source est vide.") {}
+
+        /**
+         * @overload
+         * @brief Surcharge permettant de créer une exception à partir d’un pointeur vers la chaine de caractère contenant le type de la source.
+         * @param sourceType Le type de la source.
+         */
+        explicit EmptySource(const char* sourceType) noexcept
+                : EmptySource(std::string(sourceType)) {}
+
+        EmptySource() noexcept = delete;
+        EmptySource( const EmptySource& other ) noexcept = default;
+        EmptySource( EmptySource&& other ) noexcept = default;
+        EmptySource& operator=( const EmptySource& other ) noexcept = default;
+        EmptySource& operator=( EmptySource&& other ) noexcept = default;
+        ~EmptySource() noexcept override = default;
+    };
+
+    /**
+    * @brief Exception lancée s’il est impossible d’ouvrir un fichier.
+    *
+    * @version 1.0
+    * @since 0.1
+    * @author Axel DAVID
+    *
+    * @see gl_engine::utility::Path
+    */
+    class ErrorOpeningFile final : public IOException {
+    public:
+        /**
+         * @brief Crée une exception d’ouverture de fichier avec l’adresse du fichier passée en paramètre.
+         * @param fileUrl L’adresse du fichier ne pouvant pas être ouvert.
+         *
+         * @exceptsafe NO-THROWS.
+         *
+         * @version 1.0
+         * @since 0.1
+         *
+         * @see gl_engine::utility::Path
+         */
+        explicit ErrorOpeningFile( const std::string& fileUrl ) noexcept
+        : IOException("Erreur durant l’ouverture du fichier : " + fileUrl) {}
+
+        /**
+         * @overload
+         * @brief Surcharge prenant l’adresse du fichier sous forme de pointeur vers chaine de caractère.
+         * @param fileUrl Le pointeur vers la chaine de caractère.
+         */
+        explicit ErrorOpeningFile( const char* fileUrl ) noexcept
+        : ErrorOpeningFile(std::string{fileUrl}) {}
+
+        ErrorOpeningFile() noexcept = delete;
+        ErrorOpeningFile( const ErrorOpeningFile& ) noexcept = default;
+        ErrorOpeningFile( ErrorOpeningFile&& ) noexcept = default;
+        ErrorOpeningFile& operator=( const ErrorOpeningFile& ) noexcept = default;
+        ErrorOpeningFile& operator=( ErrorOpeningFile&& ) noexcept = default;
+        ~ErrorOpeningFile() noexcept override = default;
+    };
+
+    /**
+     * @brief Exception lancée si une erreur survient durant la lecture d’un fichier.
+     *
+     * @version 1.0
+     * @since 0.1
+     * @author Axel DAVID
+     *
+     * @see gl_engine::utility::Path
+     */
+    class ErrorReadingFile final : public IOException {
+    public:
+        /**
+         * @brief Crée une exception indiquant une erreur de lecture du fichier avec l’adresse du fichier passée en paramètre.
+         * @param fileUrl L’adresse du fichier dont l’erreur de lecture est survenue.
+         *
+         * @exceptsafe NO-THROWS.
+         *
+         * @version 1.0
+         * @since 0.1
+         *
+         * @see gl_engine::utility::Path
+         */
+        explicit ErrorReadingFile( const std::string& fileUrl ) noexcept
+        : IOException("Erreur durant la lecture du contenu du fichier : " + fileUrl) {}
+
+        /**
+         * @overload
+         * @brief Surcharge prenant l’adresse du fichier sous forme de pointeur vers chaine de caractère.
+         * @param fileUrl Le pointeur vers la chaine de caractère.
+         */
+        explicit ErrorReadingFile( const char* fileUrl ) noexcept
+        : ErrorReadingFile(std::string{fileUrl}) {}
+
+        ErrorReadingFile() noexcept = delete;
+        ErrorReadingFile( const ErrorReadingFile& ) noexcept = default;
+        ErrorReadingFile( ErrorReadingFile&& ) noexcept = default;
+        ErrorReadingFile& operator=( const ErrorReadingFile& ) noexcept = default;
+        ErrorReadingFile& operator=( ErrorReadingFile&& ) noexcept = default;
+        ~ErrorReadingFile() noexcept override = default;
+    };
+
+    /**
+     * @brief Exception lancée si une erreur survient durant la fermeture d’un fichier.
+     *
+     * @version 1.0
+     * @since 0.1
+     * @author Axel DAVID
+     *
+     * @see gl_engine::utility::Path
+     */
+    class ErrorClosingFile final : public IOException {
+    public:
+        /**
+         * @brief Crée une exception indiquant une erreur durant la fermeture du fichier avec l’adresse du fichier passée en paramètre.
+         * @param fileUrl L’adresse du fichier ne pouvant pas être ouvert.
+         *
+         * @exceptsafe NO-THROWS.
+         *
+         * @version 1.0
+         * @since 0.1
+         *
+         * @see gl_engine::utility::Path
+         */
+        explicit ErrorClosingFile( const std::string& fileUrl ) noexcept
+        : IOException("Erreur durant la fermeture du fichier : " + fileUrl) {}
+
+        /**
+         * @overload
+         * @brief Surcharge prenant l’adresse du fichier sous forme de pointeur vers chaine de caractère.
+         * @param fileUrl Le pointeur vers la chaine de caractère.
+         */
+        explicit ErrorClosingFile( const char* fileUrl ) noexcept
+        : ErrorClosingFile(std::string{fileUrl}) {}
+
+        ErrorClosingFile() noexcept = delete;
+        ErrorClosingFile( const ErrorClosingFile& ) noexcept = default;
+        ErrorClosingFile( ErrorClosingFile&& ) noexcept = default;
+        ErrorClosingFile& operator=( const ErrorClosingFile& ) noexcept = default;
+        ErrorClosingFile& operator=( ErrorClosingFile&& ) noexcept = default;
+        ~ErrorClosingFile() noexcept override = default;
+    };
+
+    /**
+     * @brief Exception lancée lorsqu’une erreur survient durant l’ouverture d’un flux.
+     *
+     * @version 1.0
+     * @since 0.1
+     * @author Axel DAVID
+     */
+    class ErrorOpeningStream final : public IOException {
+    public:
+        /**
+         * @brief Crée une exception d’ouverture de flux avec le nom du flux en paramètre.
+         * @param fluxName L’e nom du flux.
+         *
+         * @exceptsafe NO-THROWS.
+         *
+         * @version 1.0
+         * @since 0.1
+         */
+        explicit ErrorOpeningStream( const std::string& fluxName ) noexcept
+        : IOException("Erreur durant l’ouverture du flux : " + fluxName) {}
+
+        /**
+         * @overload
+         * @brief Surcharge prenant le nom du flux sous forme de pointeur vers chaine de caractère.
+         * @param fluxName Le pointeur vers la chaine de caractère.
+         */
+        explicit ErrorOpeningStream( const char* fluxName ) noexcept
+        : ErrorOpeningStream(std::string{fluxName}) {}
+
+        ErrorOpeningStream() noexcept = delete;
+        ErrorOpeningStream( const ErrorOpeningStream& ) noexcept = default;
+        ErrorOpeningStream( ErrorOpeningStream&& ) noexcept = default;
+        ErrorOpeningStream& operator=( const ErrorOpeningStream& ) noexcept = default;
+        ErrorOpeningStream& operator=( ErrorOpeningStream&& ) noexcept = default;
+        ~ErrorOpeningStream() noexcept override = default;
+    };
+
+    /**
+     * @brief Exception lancée lorsqu’une erreur survient durant la lecture du flux.
+     *
+     * @version 1.0
+     * @since 0.1
+     * @author Axel DAVID
+     */
+    class ErrorReadingStream final : public IOException {
+    public:
+        /**
+         * @brief Crée une exception de lecture de flux, avec le nom du flux.
+         * @param streamName Le nom du flux.
+         *
+         * @exceptsafe NO-THROWS.
+         *
+         * @version 1.0
+         * @since 0.1
+         */
+        explicit ErrorReadingStream( const std::string& streamName ) noexcept
+        : IOException("Erreur durant la lecture d'un flus : " + streamName) {}
+
+        /**
+         * @overload
+         * @brief Surcharge prenant le nom du flux sous forme de pointeur vers chaine de caractère.
+         * @param streamName Le pointeur vers la chaine de caractère.
+         */
+        explicit ErrorReadingStream( const char* streamName ) noexcept
+        : ErrorReadingStream(std::string{streamName}) {}
+
+        ErrorReadingStream() noexcept = delete;
+        ErrorReadingStream( const ErrorReadingStream& ) noexcept = default;
+        ErrorReadingStream( ErrorReadingStream&& ) noexcept = default;
+        ErrorReadingStream& operator=( const ErrorReadingStream& ) noexcept = default;
+        ErrorReadingStream& operator=( ErrorReadingStream&& ) noexcept = default;
+        ~ErrorReadingStream() noexcept override = default;
+    };
+
+    /**
+     * @brief Exception indiquant que le chemin passé est inconnu.
+     *
+     * @version 1.0
+     * @since 0.1
+     * @author Axel DAVID
+     *
+     * @see gl_engine::utility::Path
+     */
+    class UnknownPath final : public InvalidArgument {
+    public:
+        /**
+         * @brief Crée l’exception à partir d’une std::string contenant le chemin incriminé.
+         * @param urlPath Le chemin incriminé.
+         *
+         * @exceptsafe NO-THROWS.
+         *
+         * @version 1.0
+         * @since 0.1
+         *
+         * @see gl_engine::utility::Path
+         */
+        explicit UnknownPath( const std::string& urlPath ) noexcept
+        : InvalidArgument("Le chemin : " + urlPath + " est inconnu.") {}
+
+        /**
+         * @overload
+         * @brief Surcharge permettant de créer une exception à partir d’un pointeur vers la chaine de caractère contenant le type de la source.
+         * @param urlPath Le chemin incriminé.
+         */
+        explicit UnknownPath(const char* urlPath) noexcept
+        : UnknownPath(std::string(urlPath)) {}
+
+        UnknownPath() noexcept = delete;
+        UnknownPath( const UnknownPath& other ) noexcept = default;
+        UnknownPath( UnknownPath&& other ) noexcept = default;
+        UnknownPath& operator=( const UnknownPath& other ) noexcept = default;
+        UnknownPath& operator=( UnknownPath&& other ) noexcept = default;
+        ~UnknownPath() noexcept override = default;
+    };
+
+    /**
+     * @brief Exception indiquant que le chemin passé pointe vers un fichier non régulier.
+     *
+     * @version 1.0
+     * @since 0.1
+     * @author Axel DAVID
+     *
+     * @see gl_engine::utility::Path
+     */
+    class NotRegularFile final : public InvalidArgument {
+    public:
+        /**
+         * @brief Crée l’exception à partir d’une std::string contenant le chemin incriminé.
+         * @param urlPath Le chemin incriminé.
+         *
+         * @exceptsafe NO-THROWS.
+         *
+         * @version 1.0
+         * @since 0.1
+         *
+         * @see gl_engine::utility::Path
+         */
+        explicit NotRegularFile( const std::string& urlPath ) noexcept
+        : InvalidArgument("Le chemin : " + urlPath + " pointe vers un fichier non régulier.") {}
+
+        /**
+         * @overload
+         * @brief Surcharge permettant de créer une exception à partir d’un pointeur vers la chaine de caractère contenant le type de la source.
+         * @param urlPath Le chemin incriminé.
+         */
+        explicit NotRegularFile(const char* urlPath) noexcept
+        : NotRegularFile(std::string(urlPath)) {}
+
+        NotRegularFile() noexcept = delete;
+        NotRegularFile( const NotRegularFile& other ) noexcept = default;
+        NotRegularFile( NotRegularFile&& other ) noexcept = default;
+        NotRegularFile& operator=( const NotRegularFile& other ) noexcept = default;
+        NotRegularFile& operator=( NotRegularFile&& other ) noexcept = default;
+        ~NotRegularFile() noexcept override = default;
+    };
+
+
+    /**
+     * @brief Exception générique lancée si une erreur de la bibliothèque STB survient.
+     *
+     * @version 1.0
+     * @since 0.1
+     * @author Axel DAVID
+     *
+     * @see gl_engine::utility::Image
+     */
+    class STBException final : public Exception {
+    public:
+        /**
+         * @brief Crée une exception à partir de la raison fournie.
+         * @param what_arg La raison sous forme de chaine de caractère.
+         *
+         * @exceptsafe NO-THROW.
+         *
+         * @version 1.0
+         * @since 0.1
+         * @author Axel DAVID
+         */
+        STBException( const std::string& what_arg ) noexcept
+        : Exception(what_arg) {}
+
+        /**
+         * @overload
+         * @brief Surcharge prenant en paramètre la raison sous forme de pointeur vers chaine de caractère.
+         * @param what_arg Le pointeur.
+         */
+        STBException( const char* what_arg ) noexcept
+        : STBException(std::string{what_arg}) {}
+
+        STBException() noexcept = delete;
+        STBException( const STBException& other ) noexcept = default;
+        STBException( STBException&& other ) noexcept = default;
+        STBException& operator=( const STBException& other ) noexcept = default;
+        STBException& operator=( STBException&& other ) noexcept = default;
+        ~STBException() noexcept override = default;
+    };
+
+
+
+    // Amitié : Déclaration de la class Path nécessaire pour la classe Content.
+
     class Path;
 
     /**
      * @brief Type fort représentant le contenu, d’un flux d’entrée, d’un fichier ou d’une chaine de caractère.
+     *
+     * @version 1.0
+     * @since 0.1
+     * @author Axel DAVID
+     *
      * @see gl_engine::Shader
      * @see gl_engine::utility::Path
      */
-    class Content {
+    class Content final {
     public:
         /**
          * @brief Copie le contenu d’une std::string dans l’objet Content construit
+         *
          * @param source Le contenu
          * @pre La source ne doit pas être vide.
-         * @throws std::invalid_argument Lancée si la std::string fournie est vide.
+         * @throws gl_engine::utility::EmptySource Lancée si la std::string fournie est vide.
          * @post Le contenu de Content est identique à la std::string.
-         * @throws std::bad_alloc Lancée si l’objet ne peut pas être alloué.
+         *
          * @exceptsafe FORT. Ne modifie aucune donnée.
          */
         explicit Content( std::string source );
 
         /**
-         * @brief Copie le contenu d’une chaine de caractère const char* dans l’objet Content construit
+         * @brief Copie le contenu d’une chaine de caractère const char* dans l’objet Content construit.
+         *
          * @param source Le pointeur vers le contenu
          * @pre La source ne doit pas être vide.
-         * @throws std::invalid_argument Lancée si la chaine de caractère fournie est vide.
+         * @throws gl_engine::utility::EmptySource Lancée si la chaine de caractère fournie est vide.
          * @post Le contenu de Content est identique à la chaine de caractère.
+         *
          * @pre Le pointeur ne doit pas être nullptr
          * @throws std::logic_error Lancée si le pointeur est égale à nullptr.
          * @post Le pointeur fourni est toujours valide après cette fonction.
-         * @throws std::bad_alloc Lancée si l’objet ne peut pas être alloué.
+         *
          * @exceptsafe FORT. Ne modifie aucune donnée.
          */
         explicit Content( const char* source );
 
         /**
-         * @brief Copie le contenu d’une std::string_view dans l’objet Content construit
+         * @brief Copie le contenu d’une std::string_view dans l’objet Content construit.
+         *
          * @param source La vue sur le contenu
          * @pre La source ne doit pas être vide.
-         * @throws std::invalid_argument Lancée si la source fournie est vide.
+         * @throws gl_engine::utility::EmptySource Lancée si la source fournie est vide.
          * @post Le contenu de Content est identique à la vue.
-         * @throws std::bad_alloc Lancée si l’objet ne peut pas être alloué.
+         *
          * @exceptsafe FORT. Ne modifie aucune donnée.
          */
         explicit Content( std::string_view source );
 
         /**
-         * @brief Copie le contenu du flux d’entrée dans l’objet Content construit
+         * @brief Copie le contenu du flux d’entrée dans l’objet Content construit.
+         *
          * @param stream Le flux d’entrée vers le contenu
          * @pre Le stream doit être bien formé.
          * @throws std::ios_base::failure Lancée si une opération précédente cette méthode, a défini std::ios_base::badbit ou std::ios_base::failbit à 1.
          * @throws std::ios_base::failure Lancée si une erreur arrive durant la lecture du flux fourni.
+         *
          * @pre Le contenu du stream ne doit pas être vide.
-         * @throws std::invalid_argument Lancée si le contenu du stream est vide.
+         * @throws gl_engine::utility::EmptySource Lancée si le contenu du stream est vide.
          * @post Le contenu de Content est identique au contenu se trouvant dans stream.
-         * @throws std::bad_alloc Lancée si l’objet ne peut pas être alloué.
+         *
          * @exceptsafe FORT. Seulement si c’est une mauvaise allocation arrive.
          * @exceptsafe BASE. Le flux est dans un état valide si std::ios_base::failbit est à 1.
          * @exceptsafe AUCUNE. Le flux est irrécupérable si std::ios_base::badbit est à 1.
@@ -138,34 +490,38 @@ namespace gl_engine::utility {
         explicit Content( std::istream& stream );
 
         /**
-         * @brief Copie le contenu du fichier pointé par path dans l’objet Content construit
+         * @brief Copie le contenu du fichier pointé par path dans l’objet Content construit.
          * @param path Le chemin vers le code source
-         * @pre L'objet Path doit contenir un chemin valide.
-         * @throws std::ios_base::failure Lancée s’il est impossible d’ouvrir le fichier pointé par path.
-         * @throws std::ios_base::failure Lancée si la fermeture du fichier échoue (le fichier est quand même libéré).
-         * @throws std::ios_base::failure Lancée si une erreur arrive durant la lecture du fichier.
+         *
          * @pre Le code source ne doit pas être vide.
-         * @throws std::invalid_argument Lancée si le contenu du fichier est vide.
+         * @throws gl_engine::utility::EmptySource Lancée si le contenu du fichier est vide.
          * @post Le contenu de Content est identique au contenu du fichier.
-         * @throws std::bad_alloc Lancée si l’objet ne peut pas être alloué.
+         *
          * @exceptsafe FORT. Ne modifie aucune donnée.
+         *
          * @see gl_engine::utility::Path
          */
-        explicit Content( Path path );
+        explicit Content( const Path& path );
 
         /**
          * @brief Retourne une copie du contenu de l’objet Content sous forme de chaine de caractère std::string.
          * @return Une chaine de caractère.
-         * @exceptsafe FORT. Ne lance aucune exception.
+         *
+         * @exceptsafe NO-THROWS.
+         *
+         * @version 1.0
+         * @since 0.1
          */
-        [[nodiscard]] std::string getContent() const noexcept;
+        [[nodiscard]] std::string content() const noexcept;
 
         /**
          * @brief Retourne le type de la source. Dans le cas d’un path, cela retourne aussi le chemin du fichier contenant le code source.
          * @return Une chaine de caractère
-         * @exceptsafe FORT. Ne lance aucune exception.
+         *
+         * @exceptsafe NO-THROWS.
          */
-        [[nodiscard]] std::string getType() const noexcept;
+        [[nodiscard]] std::string type() const noexcept;
+
 
     private:
         // Dans le cas d’un besoin d’optimisation de taille utilisé, et que getContent est très peu utilisé
@@ -176,36 +532,151 @@ namespace gl_engine::utility {
         std::string sourceType_;
 
         /**
-         * @brief Récupère le contenu du flux fourni
+         * @brief Type fort représentant le type de la source pour le constructeur de gl_engine::utility::Content.
+         *
+         * @version 1.0
+         * @since 0.1
+         * @author Axel DAVID
+         *
+         * @see gl_engine::utility::Content
+         */
+        class SOURCE_TYPE final {
+        public:
+            /// Type indiquant que la source vient d’une std::string
+            static const SOURCE_TYPE STRING;
+            /// Type indiquant que la source vient d’un const char*
+            static const SOURCE_TYPE CONST_CHAR_PTR;
+            /// Type indiquant que la source vient d’une std::string_view
+            static const SOURCE_TYPE STRING_VIEW;
+            /// Type indiquant que la source vient d'un flux.
+            static const SOURCE_TYPE STREAM;
+            /// Type indiquant que la source vient du contenu d’un fichier.
+            static const SOURCE_TYPE FILE;
+
+            // Note développeur : Cette classe étant seulement composée de constantes prédéfinies
+            // il est donc impossible de déplacer les constantes.
+
+            /**
+             * @brief Impossible de créer un gl_engine::utility::Content::SourceType sans argument.
+             *
+             * @version 1.0
+             * @since 0.1
+             */
+            SOURCE_TYPE() noexcept = delete;
+
+            SOURCE_TYPE( const SOURCE_TYPE& other ) noexcept = default;
+            SOURCE_TYPE( SOURCE_TYPE&& ) noexcept = delete;
+
+            SOURCE_TYPE& operator=( const SOURCE_TYPE& other ) noexcept = default;
+            SOURCE_TYPE& operator=( SOURCE_TYPE&& other ) noexcept = delete;
+
+            ~SOURCE_TYPE() noexcept = default;
+
+            /**
+             * @brief Convertit le gl_engine::utility::Content::SourceType en std::string
+             * @return Une chaine de caractère représentant la constante.
+             *
+             * @exceptsafe NO-THROWS.
+             *
+             * @version 1.0
+             * @since 0.1
+             *
+             * @see gl_engine::utility::Content
+             */
+            std::string to_string() const noexcept {
+                return type_;
+            }
+
+            /**
+             * @brief Surcharge statique permettant de convertir un gl_engine::utility::Content::SourceType en std::string.
+             * @param type gl_engine::utility::Content::SourceType
+             * @return Une chaine de caractère.
+             *
+             * @exceptsafe NO-THROWS.
+             *
+             * @version 1.0
+             * @since 0.1
+             *
+             * @see gl_engine::utility::Content
+             */
+            static std::string to_string( const SOURCE_TYPE type ) noexcept {
+                return type.to_string();
+            }
+
+        private:
+            std::string type_;
+
+            /**
+             * @brief Construit un gl_engine::utility::Content::SourceType à partir d’une std::string.
+             * @param type Une chaine de caractère.
+             *
+             * @exceptsafe NO-THROWS.
+             *
+             * @version 1.0
+             * @since 0.1
+             *
+             * @note Pour développeur : Actuellement cette classe ne contient que des constantes définies par le développeur.
+             * Dans le futur, s’il est nécessaire de permettre à l’utilisateur de créer des constantes
+             * Il faudra donc enlever le noexcept, est créé une std::unordered_map contenant tous les types acceptés.
+             */
+            explicit SOURCE_TYPE( std::string type ) noexcept
+            : type_(std::move(type)) {}
+
+            /**
+             * @overload
+             * @brief Surcharge du constructeur pour prendre en charge const char*.
+             * @param type Le pointeur vers la chaine de caractère.
+             */
+            explicit SOURCE_TYPE( const char* type ) noexcept
+            : SOURCE_TYPE( std::string( type ) ) {}
+
+            /**
+             * @overload
+             * @brief Surcharge pour prendre en charge std::string_view.
+             * @param type La vue vers la chaine de caractère.
+             */
+            explicit SOURCE_TYPE( std::string_view type ) noexcept
+            : SOURCE_TYPE( std::string( type ) ) {}
+        };
+
+
+        /**
+         * @brief Récupère le contenu du flux fourni.
          * @param stream Flux d’entrée
          * @return Une chaine de caractère correspondant au contenu du flux
+         *
          * @pre Le stream fourni doit être bien formé.
          * @throws std::ios_base::failure Lancée si une opération précédente cette méthode, a défini std::ios_base::badbit ou std::ios_base::failbit à 1.
          * @throws std::ios_base::failure Lancée si une erreur arrive durant la lecture du flux fourni.
          * @post La chaine de caractère retournée contient le contenu du stream fourni.
          * @throws std::bad_alloc Lancée si la std::string n’arrive pas à être allouée.
+         *
          * @exceptsafe FORT. Seulement si c’est une mauvaise allocation de la string.
          * @exceptsafe BASE. Le flux est dans un état valide si std::ios_base::failbit est à 1.
          * @exceptsafe AUCUNE. Le flux est irrécupérable si std::ios_base::badbit est à 1.
          */
         static std::string getContentFrom( std::istream& stream );
 
-        // TODO Peut être utiliser une fonction statique au lieu d'un constructeur pour l'initialisation
         /**
-         * @brief Copie le contenu d’une std::string dans l’objet Content construit
+         * @brief Copie le contenu d’une std::string dans l’objet Content construit.
          * @param source Le contenu
-         * @param sourceType Le type de la source
+         * @param sourceType gl_engine::utility::Content::SourceType
+         *
          * @pre La source ne doit pas être vide.
-         * @throws std::invalid_argument Lancée si la std::string fournie est vide.
+         * @throws gl_engine::utility::EmptySource Lancée si la std::string fournie est vide.
          * @post Le contenu de Content est identique à la std::string.
-         * @pre sourceType ne doit pas être vide
-         * @throws std::logic_error Lancée si sourceType est vide.
-         * @post Le type de la source est identique au type fourni.
-         * @throws std::bad_alloc Lancée si l’objet ne peut pas être alloué.
+         *
          * @exceptsafe FORT. Ne modifie aucune donnée.
          */
-        explicit Content( std::string source, std::string sourceType );
+        explicit Content( std::string source, const SOURCE_TYPE& type );
     };
+
+    inline const Content::SOURCE_TYPE Content::SOURCE_TYPE::STRING( "String" );
+    inline const Content::SOURCE_TYPE Content::SOURCE_TYPE::CONST_CHAR_PTR( "Const char*" );
+    inline const Content::SOURCE_TYPE Content::SOURCE_TYPE::STRING_VIEW( "String view" );
+    inline const Content::SOURCE_TYPE Content::SOURCE_TYPE::STREAM( "Stream" );
+    inline const Content::SOURCE_TYPE Content::SOURCE_TYPE::FILE( "File" );
+
 
     // TODO Vérifier les permissions de lecture des fichiers fournis
     /**
@@ -213,7 +684,7 @@ namespace gl_engine::utility {
      * @see gl_engine::utility::Content
      * @see gl_engine::Shader
      */
-    class Path {
+    class Path final {
     public:
         /**
          * @brief Construit un objet Path à partir du chemin fourni dans la std::string.
@@ -273,7 +744,9 @@ namespace gl_engine::utility {
         /**
          * @brief Méthode amie de la classe gl_engine::utility::Content, pouvant accéder au contenu de Path
          */
-        friend gl_engine::utility::Content::Content( Path path );
+        friend gl_engine::utility::Content::Content( const Path& path );
+
+        friend class Image;
 
     private:
         // Dans le cas que seul la classe Content utilise Path, stocké un pointeur vers un const char*
@@ -297,7 +770,9 @@ namespace gl_engine::utility {
      * @cite https://en.cppreference.com/w/cpp/utility/to_underlying
      */
     template<class Enum>
-    constexpr std::underlying_type_t<Enum> to_underlying( Enum value ) noexcept;
+    constexpr inline std::underlying_type_t<Enum> to_underlying( Enum value ) noexcept {
+        return static_cast<std::underlying_type_t<Enum>>(value);
+    }
 
     /**
      * @brief Convertie la valeur d’une macro définis dans le fichier glad.h, en son nom.
@@ -311,15 +786,97 @@ namespace gl_engine::utility {
     std::string to_string( GLenum macro );
 
 
+    class Image final {
+    public:
+        class STBimageDestroyer {
+        public:
+            /**
+             * @brief Détruit la fenêtre pointée par la poignée fournie.
+             *
+             * @param [in]window La poignée vers la fenêtre à détruire.
+             * @post La fenêtre et le contexte ont été détruit.
+             *
+             * @throws gl_engine::glfw::Not_Initialized Lancée si le contexte GLFW n’a pas été initialisé.
+             * @throws gl_engine::glfw::Platform_Error Lancée si une erreur spécifique à la plateforme est survenue.
+             * @exceptsafe AUCUNE. Si Not_Initialized est lancée alors le contexte GLFW n’a pas été initialisé, il suffit donc de l’initialiser.
+             * @exceptsafe AUCUNE. Si Platform_Error est lancée alors l’objet GLFW est dans un état indéfini.
+             *
+             * @version 1.0
+             * @since 0.1
+             * @author Axel DAVID
+             *
+             * @see gl_engine::glfw::GLFW
+             * @see gl_engine::smartGLFWwindow
+             * @see void gl_engine::glfw::GLFW::destroyWindow( GLFWwindow* window )
+             * @see [GLFW-DestroyWindow](https://www.glfw.org/docs/3.3/group__window.html#gacdf43e51376051d2c091662e9fe3d7b2)
+             *
+             * @note Cette fonction doit être appelée sur le thread principal.
+             * @note L’exception gl_engine::glfw::Platform_Error est expliqué dans le lien fourni.
+             */
+            void operator()( unsigned char* const data ) const {
+                stbi_image_free(data);
+            }
+        };
+
+        using smartSTBimage = std::unique_ptr<unsigned char, STBimageDestroyer>;
+
+        Image() = delete;
+
+        /**
+         * @brief Charge une image sans correction de gamma
+         * @param path Le chemin vers l'image à charger.
+         */
+        explicit Image(const Path& path);
+
+        // TODO Permettre la copie du contenu de image dans une autre image
+
+        Image(const Image&) noexcept = delete;
+        Image( Image&& ) noexcept = default;
+        Image& operator=( const Image& ) noexcept = delete;
+        Image& operator=( Image&& ) noexcept = default;
+        ~Image() noexcept = default;
+
+    private:
+        int width_ = 0;
+        int height_ = 0;
+        int channels_ = 0;
+
+        /**
+         * @brief Récupère le contenu de l’image.
+         * @return Un pointeur non propriétaire vers le contenu.
+         *
+         * @exceptsafe NO-THROWS.
+         */
+        unsigned char* getData() const noexcept {
+            return data_.get();
+        }
+
+        smartSTBimage data_{nullptr};
+    };
+
+
+    class Dimension final {
+    public:
+        GLsizei width;
+        GLsizei height;
+
+        Dimension() = default;
+        Dimension( const Dimension& ) = default;
+        Dimension( Dimension&& ) noexcept = default;
+        ~Dimension() noexcept = default;
+        Dimension& operator=( const Dimension& ) = default;
+        Dimension& operator=( Dimension&& ) noexcept = default;
+    };
+
 }
 
-// region Export
 // Exportation des noms des utilities dans l’espace de nom gl_engine
 namespace gl_engine {
     using Content = gl_engine::utility::Content;
     using Path = gl_engine::utility::Path;
+    using Image = gl_engine::utility::Image;
+    using Dimension = gl_engine::utility::Dimension;
 }
-// endregion
 
 namespace gl_engine::open_gl {
     // region Shader
@@ -405,73 +962,11 @@ namespace gl_engine::open_gl {
      */
     void linkProgram( Id id );
 
-    Id getUniformLocation( Id idProgram, std::string name );
+    GLint getUniformLocation( Id idProgram, std::string name );
 
     template <typename T>
     void setUniform( Id id, T value );
     //endregion
-
-    class Uniform {
-        // TODO Class pour les types d'Uniform
-        // https://stackoverflow.com/questions/33690186/opengl-bool-uniform
-
-    };
 }
-
-namespace gl_engine {
-    using GLFWErrorCode = int;
-
-    using GLFW_initialisation_failed = std::runtime_error;
-
-    using GLFWException = std::runtime_error;
-
-    using GLFWUnknownException = std::runtime_error;
-
-
-    /**
-     * @brief Retourne une chaine de caractère représentant le nom du code d'erreur GLFW passé.
-     * @param code[in] Le code d'erreur voulant être convertit en chaine de caractère.
-     * @return Une chaine de caractère.
-     * @throws bidon::GLFWUnknownException Lancée si le code d'erreur est inconnu.
-     * @throws std::bad_alloc Lancée si le conteneur interne ne peut pas être alloué.
-     * @exceptsafe Forte. Ne modifie aucunes données.
-     * @cite https://www.glfw.org/docs/3.3/group__errors.html#gad44162d78100ea5e87cdd38426b8c7a1
-     */
-    std::string getCodeName( GLFWErrorCode code );
-
-    /**
-     * @brief Fonctionne appelée à chaque erreur de GLFW. Cette fonction lance une exception pour chaque erreur.
-     * @param code[in] Le code d'erreur GLFW.
-     * @param description[in] La description du message d'erreur.
-     * @throws std::bad_allox Lancée si l'allocation du message rate.
-     * @throws bidon::GLFWException Lancée à chaque appel de la fonction.
-     * @exceptsafe Forte. Ne modifie aucunes données.
-     * @cite https://www.glfw.org/docs/3.3/intro_guide.html#error_handling
-     */
-    void GLFWErrorCallback( GLFWErrorCode code, const char* description );
-
-    class Dimension {
-    public:
-        GLsizei width;
-        GLsizei height;
-
-        Dimension() = default;
-        Dimension( const Dimension& ) = default;
-        Dimension( Dimension&& ) noexcept = default;
-        ~Dimension() noexcept = default;
-        Dimension& operator=( const Dimension& ) = default;
-        Dimension& operator=( Dimension&& ) noexcept = default;
-    };
-
-}
-
-inline void gl_engine::GLFWErrorCallback( const gl_engine::GLFWErrorCode code, const char* const description ) {
-    if ( GLFW_NO_ERROR != code ) {
-        throw gl_engine::GLFWException( "Erreur GLFW : " + gl_engine::getCodeName( code ) + description );
-    }
-}
-
-
-
 
 #endif // GLENGINE_UTILITY_HPP

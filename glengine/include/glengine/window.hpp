@@ -35,7 +35,6 @@
 #include <functional>
 
 #include <glengine/glfw/glfw.hpp>
-#include <glengine/glfw/interface.hpp>
 #include <glengine/utility.hpp>
 #include <glengine/scene.hpp>
 

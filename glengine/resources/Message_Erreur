@@ -1,0 +1,101 @@
+Erreur code(entier) : code(String) : Explication rapide\n
+\t Contexte\n
+\t Raison : "..."\n
+\t Résolution : "..."\n
+
+Erreur glfw::NoError :
+Erreur 0 : GLFW_NO_ERROR :
+    Contexte : Aucune erreur.\n
+    Raison : string reason\n
+    Résolution développeur : Veuillez vérifier d'où provient cette erreur et reporter le bug sur le git de la bibliothèque.\n
+    Note : Si cette erreur survient, il s'agit d'un test ou d'une erreur de logique dans la bibliothèque gl_engine ou GLFW. Sachant que la bibliothèque GLFW ne lancera jamais ce type d'exception.\n
+
+
+Erreur glfw::NotInitialized :
+Erreur x : GLFW_NOT_INITIALIZED :
+    Contexte : La bibliothèque GLFW n'a pas été initialisée.
+    Raison : string reason\n
+    Résolution : Veuillez initialisée la bibliothèque GLFW avant l'appel d'une fonction de cette bibliothèque nécessitant l'initialisation de GLFW.
+    Note : Cela peut seulement arriver si vous contournez l'utilisation de l'objet gl_engine::Window. Si vous pensez que la bibliothèque a bien été initialisée alors c'est un bug de gl_engine, veuillez le reporter sur git du projet.
+
+
+Erreur glfw::NoCurrentContext :
+Erreur x : GLFW_NO_CURRENT_CONTEXT :
+    Contexte : Le contexte OpenGL est manquant lors de l'appel d'une fonction de GLFW nécessitant un contexte.
+    Raison :
+    Résolution : Veuillez fournir un contexte OpenGL avant l'appel de la function incriminée. Vous contournez la logique de la bibliothèque gl_engine.
+
+
+Erreur glfw::InvalidEnum :
+Erreur x : GLFW_INVALID_ENUM :
+    Contexte : Une valeur d'énumération passée à une fonction GLFW est invalide.
+    Raison :
+    Résolution : Vérifier l'emplacement de l'erreur et reporter le bug sur le git de la bibliothèque.
+
+
+Erreur glfw::InvalidValue :
+Erreur x : GLFW_INVALID_VALUE :
+    Contexte : Une valeur passée à une fonction GLFW est invalide.
+    Raison :
+    Résolution : Vérifier l'emplacement de l'erreur et reporter le bug sur le git de la bibliothèque.
+
+
+Erreur glfw::OutOfMemory :
+Erreur x : GLFW_OUT_OF_MEMORY :
+    Contexte : Une allocation de mémoire pour un objet de GLFW a échoué.
+    Raison :
+    Résolution : Vérifier l'emplacement de l'erreur et reporter le bug sur le git de la bibliothèque.
+    Résolution développeur : Cela peut venir d'un bug de la bibliothèque GLFW, si c'est le cas reporter le sur le git de GLFW.
+
+
+Erreur glfw::ApiUnavailable :
+Erreur x : GLFW_API_UNAVAILABLE :
+    Contexte : GLFW n'a pas trouvé de support pour l'API OpenGL.
+    Raison :
+    Résolution : Veuillez vérifier que votre pilote graphique prenne en charge l'API OpenGL. Si c'est le cas, reportez le bug sur le git de la bibliothèque.
+
+
+Erreur glfw::VersionUnavailable :
+Erreur x : GLFW_VERSION_UNAVAILABLE :
+    Contexte : La version OpenGL 3.3 demandée n'est pas disponible sur cette machine.
+    Raison :
+    Résolution : Veuillez vérifier que la version 3.3 est prise en charge par votre système. Si c'est le cas, reportez le bug sur le git de la bibliothèque.
+    Résolution développeur : La version d'OpenGL doit être 3.3 et non supérieur.
+
+
+Erreur glfw::PlatformError :
+Erreur x : GLFW_PLATFORM_ERROR :
+    Contexte : Une erreur spécifique à votre système est survenue.
+    Raison :
+    Résolution : Veuillez reportez le bug avec les informations de votre système (OS, carte graphique, CPU, RAM) sur le git de la bibliothèque.
+
+
+Erreur glfw::FormatUnavailable :
+Erreur x : GLFW_FORMAT_UNAVAILABLE :
+    Contexte : Le format de données n'est pas disponible.
+    Raison :
+    Résolution : Si elles sont émises lors de la création de la fenêtre, une ou plusieurs contraintes dures ne correspondent à aucun des formats de pixel disponibles. Si votre application est suffisamment flexible, rétrogradez vos exigences et réessayez. Dans le cas contraire, informez l'utilisateur que sa machine ne correspond pas à vos besoins.
+                 Si elle est émise lors de l'interrogation du presse-papiers, ignorez l'erreur ou signalez-la à l'utilisateur, selon le cas.
+
+
+Erreur glfw::NoWindowContext :
+Erreur x : GLFW_NO_WINDOW_CONTEXT :
+    Context : Une fenêtre sans contexte OpenGL a été transmisse à une fonction GLFW qui lui demande d'en avoir un.
+    Raison :
+    Résolution : Veuillez reportez le bug sur le git de la bibliothèque.
+
+
+Erreur glfw::InvalidTitle
+Erreur InvalidTitle : Lors de la création d'une entrée dans le dictionnaire de l'objet gl_engine::glfw::ListErrorCode, le titre de l’exception fourni est vide, veuillez fourni un titre non vide.
+Veuillez reporter le bug sur le git de la bibliothèque.
+
+
+Erreur glfw::InvalidErrorCode :
+Erreur InvalidErrorCode : Lors de la création d'un objet gl_engine::glfw::ErrorCode, l'entier fourni doit être pris en charge. Veuillez vérifier que la valeur fournie est prise en charge (https://www.glfw.org/docs/3.3/group__errors.html).
+Si l'erreur survient durant le début de l'exécution de la bibliothèque, veuillez reportez le bug sur le git de la bibliothèque.
+
+
+Erreur glfw::InvalidCreateFunction :
+Erreur InvalidCreateFunction : Impossible d'insérer une entrée dans la liste de code d'erreur de l'objet gl_engine::glfw::ListErrorCode, un pointeur vers une fonction de création d’exception est NULL.
+En tant qu'utilisateur : Veuillez reporter le bug sur le git de la bibliothèque.
+En tant que développeur : Veuillez vérifier l'emplacement du bug, et vérifier la valeur du pointeur transmisse, et corriger le bug pour que le pointeur vers la fonction de création pour la bonne exception.
